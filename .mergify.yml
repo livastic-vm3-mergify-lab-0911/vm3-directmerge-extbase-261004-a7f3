@@ -1,0 +1,42 @@
+scopes:
+  source:
+    files:
+      docs:
+        include:
+          - docs/**/*
+      core:
+        include:
+          - core/**/*
+  merge_queue_scope: merge-queue
+
+queue_rules:
+  - name: dm-extbase
+    queue_conditions: []
+    merge_conditions:
+      - check-success = vm3-dm-ci
+    batch_size: 1
+    merge_method: squash
+
+merge_queue:
+  mode: serial
+  max_parallel_checks: 1
+
+pull_request_rules:
+  - name: queue direct-merge candidate when ready
+    conditions:
+      - base = main
+      - title ~= ^VM3 DM
+      - draft = false
+      - check-success = vm3-dm-ci
+    actions:
+      queue:
+        name: dm-extbase
+
+  - name: queue trusted core control
+    conditions:
+      - base = main
+      - title ~= ^VM3 CORE
+      - check-success = vm3-dm-ci
+    actions:
+      queue:
+        name: dm-extbase
