@@ -1,0 +1,27 @@
+name: VM3 Direct Merge Freshness CI
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  gate:
+    name: vm3-dm-ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Fresh merged-state invariant
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "EVENT=${{ github.event_name }}"
+          echo "HEAD_SHA=${{ github.event.pull_request.head.sha }}"
+          echo "BASE_SHA=${{ github.event.pull_request.base.sha }}"
+          if [[ -f docs/control.txt && -f core/control.txt ]]; then
+            echo "VM3_DM_CONTROL_COMBINED_FAIL=true"
+            exit 1
+          fi
+          if [[ -f docs/treatment.txt && -f core/external.txt ]]; then
+            echo "VM3_DM_TREATMENT_COMBINED_FAIL=true"
+            exit 1
+          fi
+          echo "VM3_DM_FRESH_PASS=true"
